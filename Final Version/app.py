@@ -33,76 +33,80 @@ MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2m
 
 @st.cache_resource
 def load_model():
-    """Load ONLY our custom trained model from Google Drive."""
+    """Load our custom model using transformers directly."""
     model_path = "smartual_model"
     
-    # Check if model already exists
-    if os.path.exists(model_path) and os.path.exists(os.path.join(model_path, "config.json")):
+    # Download from Google Drive if needed
+    if not os.path.exists(model_path):
         try:
-            # Fix the config file if needed
-            fix_model_config(model_path)
-            return SentenceTransformer(model_path)
+            st.info("📥 Downloading our custom trained model...")
+            zip_path = "smartual_model.zip"
+            gdown.download(MODEL_ZIP_URL, zip_path, quiet=False)
+            
+            if os.path.exists(zip_path):
+                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                    zip_ref.extractall(model_path)
+                os.remove(zip_path)
         except Exception as e:
-            st.error(f"❌ Model exists but failed to load: {e}")
+            st.error(f"❌ Download failed: {e}")
             st.stop()
     
-    # Download from Google Drive
+    # Debug: Show what files we have
+    if os.path.exists(model_path):
+        files = os.listdir(model_path)
+        st.info(f"📁 Model files: {files}")
+    
     try:
-        st.info("📥 Downloading our custom trained model...")
+        # Use transformers to load the model directly
+        from transformers import AutoModel, AutoTokenizer
+        import torch
         
-        # Download ZIP
-        zip_path = "smartual_model.zip"
-        gdown.download(MODEL_ZIP_URL, zip_path, quiet=False)
+        # Load model and tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        model = AutoModel.from_pretrained(model_path)
         
-        if not os.path.exists(zip_path):
-            st.error("❌ Download failed! Check your Google Drive link.")
-            st.stop()
+        # Create a custom wrapper that works like SentenceTransformer
+        class CustomSentenceTransformer:
+            def __init__(self, model, tokenizer):
+                self.model = model
+                self.tokenizer = tokenizer
+                self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                self.model.to(self.device)
+                self.model.eval()
+            
+            def encode(self, texts, **kwargs):
+                # Tokenize inputs
+                inputs = self.tokenizer(texts, padding=True, truncation=True, 
+                                      return_tensors="pt", max_length=512)
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                
+                # Get embeddings
+                with torch.no_grad():
+                    outputs = self.model(**inputs)
+                
+                # Use mean pooling on the last hidden states
+                embeddings = self.mean_pooling(outputs.last_hidden_state, inputs['attention_mask'])
+                
+                # Normalize embeddings
+                embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
+                
+                return embeddings.cpu().numpy()
+            
+            def mean_pooling(self, model_output, attention_mask):
+                token_embeddings = model_output
+                input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+                sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
+                sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+                return sum_embeddings / sum_mask
         
-        # Extract
-        st.info("📦 Extracting model files...")
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(model_path)
-        
-        # Fix model config
-        fix_model_config(model_path)
-        
-        # Clean up
-        if os.path.exists(zip_path):
-            os.remove(zip_path)
-        
-        # Load our custom model
-        return SentenceTransformer(model_path)
+        # Create our custom model
+        custom_model = CustomSentenceTransformer(model, tokenizer)
+        st.success("✅ Custom model loaded successfully with transformers!")
+        return custom_model
         
     except Exception as e:
-        st.error(f"❌ Failed to load our custom model: {e}")
+        st.error(f"❌ Failed to load custom model: {e}")
         st.stop()
-        return None
-
-def fix_model_config(model_path):
-    """Fix the model config file to include required fields."""
-    config_file = os.path.join(model_path, "config.json")
-    
-    if os.path.exists(config_file):
-        try:
-            with open(config_file, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-            
-            # Add required fields if missing
-            if "model_type" not in config:
-                config["model_type"] = "bert"  # or "roberta", "distilbert" based on your model
-            
-            if "architectures" not in config:
-                config["architectures"] = ["BertModel"]  # or "RobertaModel", etc.
-            
-            # Save fixed config
-            with open(config_file, 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=2)
-                
-            st.success("✅ Fixed model configuration")
-            
-        except Exception as e:
-            st.warning(f"⚠️ Could not fix config: {e}")
-
 
 
 # COLOR PALETTE - Balanced Yellow
