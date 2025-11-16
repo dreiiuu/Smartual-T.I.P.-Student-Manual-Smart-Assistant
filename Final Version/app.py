@@ -24,16 +24,17 @@ def ensure_model_extracted():
     extract_path = "smartual_model"
     
     if os.path.exists(extract_path):
-    return extract_path
+        return extract_path
 
     if not os.path.exists(zip_path):
-    st.error("Model zip file not found! Please upload smartual_model.zip")
-    return None
+        st.error("Model zip file not found! Please upload smartual_model.zip")
+        return None
     
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-    zip_ref.extractall(extract_path)
+        zip_ref.extractall(extract_path)
     
-return extract_path
+    return extract_path
+
 
 # ============================================================================
 # CONFIGURATION & COLOR PALETTE
