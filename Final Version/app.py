@@ -31,9 +31,10 @@ CHUNK_SIZE = 300
 # REPLACE THIS WITH YOUR ACTUAL GOOGLE DRIVE FILE ID
 MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2mG"
 
+
 @st.cache_resource
 def load_model():
-    """Load our custom model by fixing the config first."""
+    """Simple loader that creates proper Sentence Transformers structure."""
     model_path = "smartual_model"
     
     # Download from Google Drive if needed
@@ -51,112 +52,38 @@ def load_model():
             st.error(f"❌ Download failed: {e}")
             st.stop()
     
-    # FIX THE CONFIG FILE
-    fix_model_config(model_path)
+    # Create modules.json to tell SentenceTransformers how to load the components
+    modules_json = [
+        {
+            "idx": 0,
+            "name": "0",
+            "path": "",  # Main folder contains the transformer
+            "type": "sentence_transformers.models.Transformer"
+        },
+        {
+            "idx": 1,
+            "name": "1",
+            "path": "1_Pooling",  # Pooling layer in subfolder
+            "type": "sentence_transformers.models.Pooling"
+        }
+    ]
+    
+    # Save modules.json
+    modules_json_path = os.path.join(model_path, "modules.json")
+    with open(modules_json_path, 'w', encoding='utf-8') as f:
+        json.dump(modules_json, f, indent=2)
+    
+    st.success("✅ Created Sentence Transformers configuration")
     
     try:
-        # Now try to load with transformers
-        from transformers import AutoModel, AutoTokenizer
-        import torch
-        
-        # Load model and tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
-        model = AutoModel.from_pretrained(model_path)
-        
-        # Create custom wrapper
-        class CustomSentenceTransformer:
-            def __init__(self, model, tokenizer):
-                self.model = model
-                self.tokenizer = tokenizer
-                self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                self.model.to(self.device)
-                self.model.eval()
-            
-            def encode(self, texts, **kwargs):
-                # Tokenize
-                inputs = self.tokenizer(texts, padding=True, truncation=True, 
-                                      return_tensors="pt", max_length=512)
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
-                
-                # Get embeddings
-                with torch.no_grad():
-                    outputs = self.model(**inputs)
-                
-                # Mean pooling
-                embeddings = self.mean_pooling(outputs.last_hidden_state, inputs['attention_mask'])
-                embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
-                
-                return embeddings.cpu().numpy()
-            
-            def mean_pooling(self, model_output, attention_mask):
-                token_embeddings = model_output
-                input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-                sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
-                sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-                return sum_embeddings / sum_mask
-        
-        custom_model = CustomSentenceTransformer(model, tokenizer)
-        st.success("✅ Custom model loaded successfully!")
-        return custom_model
+        # Now load as Sentence Transformers model
+        model = SentenceTransformer(model_path)
+        st.success("✅ Custom Sentence Transformers model loaded successfully!")
+        return model
         
     except Exception as e:
-        st.error(f"❌ Failed to load custom model: {e}")
+        st.error(f"❌ Failed to load Sentence Transformers model: {e}")
         st.stop()
-
-def fix_model_config(model_path):
-    """Fix the model config file with proper model_type."""
-    config_file = os.path.join(model_path, "config.json")
-    
-    if os.path.exists(config_file):
-        try:
-            with open(config_file, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-            
-            st.info(f"🔧 Current config keys: {list(config.keys())}")
-            
-            # Add missing required fields
-            if "model_type" not in config:
-                # Try to detect model type from other fields
-                if "vocab_size" in config:
-                    if config.get("vocab_size", 0) == 30522:
-                        config["model_type"] = "bert"
-                    elif config.get("vocab_size", 0) == 50265:
-                        config["model_type"] = "roberta"
-                    else:
-                        config["model_type"] = "bert"  # Default to bert
-                else:
-                    config["model_type"] = "bert"
-                
-                st.info(f"🔧 Set model_type to: {config['model_type']}")
-            
-            if "architectures" not in config:
-                if config["model_type"] == "bert":
-                    config["architectures"] = ["BertModel"]
-                elif config["model_type"] == "roberta":
-                    config["architectures"] = ["RobertaModel"]
-                else:
-                    config["architectures"] = ["BertModel"]
-                
-                st.info(f"🔧 Set architectures to: {config['architectures']}")
-            
-            # Add other common required fields
-            if "hidden_size" not in config:
-                config["hidden_size"] = 768  # Common default
-            
-            if "num_attention_heads" not in config:
-                config["num_attention_heads"] = 12  # Common default
-            
-            if "num_hidden_layers" not in config:
-                config["num_hidden_layers"] = 12  # Common default
-            
-            # Save fixed config
-            with open(config_file, 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=2)
-                
-            st.success("✅ Fixed model configuration!")
-            
-        except Exception as e:
-            st.error(f"❌ Could not fix config: {e}")
 
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
