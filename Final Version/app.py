@@ -33,53 +33,48 @@ MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2m
 
 @st.cache_resource
 def load_model():
-    """Load the sentence transformer model from Google Drive."""
+    """Load ONLY our custom trained model from Google Drive."""
     model_path = "smartual_model"
     
-    # Check if model already exists and works
+    # Check if model already exists
     if os.path.exists(model_path) and os.path.exists(os.path.join(model_path, "config.json")):
         try:
-            model = SentenceTransformer(model_path)
-            st.success("✅ Custom trained model loaded successfully!")
-            return model
+            return SentenceTransformer(model_path)
         except Exception as e:
-            st.warning(f"Model exists but failed to load: {e}")
+            st.error(f"❌ Model exists but failed to load: {e}")
+            st.stop()
     
-    # Download and extract model from Google Drive
+    # Download from Google Drive
     try:
-        st.info("📥 Downloading your high-accuracy custom model from Google Drive... This may take a few minutes.")
+        st.info("📥 Downloading our custom trained model...")
         
-        # Download the ZIP file
+        # Download ZIP
         zip_path = "smartual_model.zip"
         gdown.download(MODEL_ZIP_URL, zip_path, quiet=False)
         
         if not os.path.exists(zip_path):
-            st.error("❌ Download failed! File not found.")
-            raise Exception("Download failed")
+            st.error("❌ Download failed! Check your Google Drive link.")
+            st.stop()
         
-        # Extract the ZIP file
+        # Extract
         st.info("📦 Extracting model files...")
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(model_path)
         
-        # Verify extraction
-        if not os.path.exists(os.path.join(model_path, "config.json")):
-            st.error("❌ Model extraction failed! Config file missing.")
-            raise Exception("Extraction failed")
-        
-        # Clean up ZIP file
+        # Clean up
         if os.path.exists(zip_path):
             os.remove(zip_path)
         
-        # Load the model
-        model = SentenceTransformer(model_path)
-        st.success("✅ Custom trained model downloaded and loaded successfully!")
-        return model
+        # Load our custom model
+        return SentenceTransformer(model_path)
         
     except Exception as e:
-        st.error(f"❌ Failed to download/load custom model: {e}")
-        st.info("🔄 Falling back to default model...")
-        return SentenceTransformer("all-MiniLM-L6-v2")
+        st.error(f"❌ Failed to load our custom model: {e}")
+        st.stop()
+        return None
+
+
+
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
 SECONDARY = "#5D4037"    # Rich Brown
