@@ -103,6 +103,8 @@ def fix_model_config(model_path):
         except Exception as e:
             st.warning(f"⚠️ Could not fix config: {e}")
 
+
+
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
 SECONDARY = "#5D4037"    # Rich Brown
