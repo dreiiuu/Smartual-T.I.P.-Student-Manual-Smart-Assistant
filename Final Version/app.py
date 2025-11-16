@@ -4,6 +4,7 @@
 # Author: AI Assistant | Date: November 2025
 # ============================================================================
 
+import zipfile
 import os
 import json
 import streamlit as st
@@ -18,6 +19,10 @@ from datetime import datetime
 # ============================================================================
 # CONFIGURATION & COLOR PALETTE
 # ============================================================================
+
+base_path = os.path.dirname(__file__)
+zip_path = os.path.join(base_path, "smartual_model.zip")
+smartual_model = os.path.join(base_path, "smartual_model")
 
 MANUAL_DATA_FILE = "manual_data.json"
 SECTION_EXAMPLES_FILE = "section_examples.json"
