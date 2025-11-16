@@ -19,7 +19,7 @@ from datetime import datetime
 # ============================================================================
 # CONFIGURATION & COLOR PALETTE
 # ============================================================================
-zip_path = "smartual_model.zip"
+zip_path = os.path.join(os.path.dirname(__file__), "smartual_model.zip")
 extract_to = "smartual_model"
 
 if not os.path.exists(extract_to):
