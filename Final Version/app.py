@@ -756,6 +756,22 @@ def render_home_page(model, chunks, index, chunk_embeds, section_examples, all_s
                 <p style='font-weight: bold; margin: 0;'>T.I.P.</p>
             </div>
             """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div style='padding: 1rem;'>
+            <h2 style='margin-bottom: 1rem; color: {TEXT};'>👋 Welcome to Your Smart Assistant!</h2>
+            <p style='font-size: 1.2rem; margin-bottom: 0; color: {SECONDARY};'>
+            Get instant answers to your questions about the T.I.P. Student Manual
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Search Section
+    st.markdown(f"""
+    <div class="search-section">
+        <h3 style='color: {TEXT}; margin-bottom: 1.5rem;'>💬 Ask Your Question</h3>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Search Section
     st.markdown(f"""
