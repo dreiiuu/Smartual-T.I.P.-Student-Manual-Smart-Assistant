@@ -1,4 +1,4 @@
-# Smart Student Assistant - T.I.P. Student Manual Q&A System
+# Smart Student Assistant - T.I.P. Student Manual Q&A System (ver1)
 
 ## 🎯 Overview
 
