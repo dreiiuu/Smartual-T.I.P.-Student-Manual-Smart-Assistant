@@ -33,7 +33,7 @@ MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2m
 
 @st.cache_resource
 def load_model():
-    """Load our custom model using transformers directly."""
+    """Load our custom model by fixing the config first."""
     model_path = "smartual_model"
     
     # Download from Google Drive if needed
@@ -51,13 +51,11 @@ def load_model():
             st.error(f"❌ Download failed: {e}")
             st.stop()
     
-    # Debug: Show what files we have
-    if os.path.exists(model_path):
-        files = os.listdir(model_path)
-        st.info(f"📁 Model files: {files}")
+    # FIX THE CONFIG FILE
+    fix_model_config(model_path)
     
     try:
-        # Use transformers to load the model directly
+        # Now try to load with transformers
         from transformers import AutoModel, AutoTokenizer
         import torch
         
@@ -65,7 +63,7 @@ def load_model():
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         model = AutoModel.from_pretrained(model_path)
         
-        # Create a custom wrapper that works like SentenceTransformer
+        # Create custom wrapper
         class CustomSentenceTransformer:
             def __init__(self, model, tokenizer):
                 self.model = model
@@ -75,7 +73,7 @@ def load_model():
                 self.model.eval()
             
             def encode(self, texts, **kwargs):
-                # Tokenize inputs
+                # Tokenize
                 inputs = self.tokenizer(texts, padding=True, truncation=True, 
                                       return_tensors="pt", max_length=512)
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
@@ -84,10 +82,8 @@ def load_model():
                 with torch.no_grad():
                     outputs = self.model(**inputs)
                 
-                # Use mean pooling on the last hidden states
+                # Mean pooling
                 embeddings = self.mean_pooling(outputs.last_hidden_state, inputs['attention_mask'])
-                
-                # Normalize embeddings
                 embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
                 
                 return embeddings.cpu().numpy()
@@ -99,15 +95,68 @@ def load_model():
                 sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
                 return sum_embeddings / sum_mask
         
-        # Create our custom model
         custom_model = CustomSentenceTransformer(model, tokenizer)
-        st.success("✅ Custom model loaded successfully with transformers!")
+        st.success("✅ Custom model loaded successfully!")
         return custom_model
         
     except Exception as e:
         st.error(f"❌ Failed to load custom model: {e}")
         st.stop()
 
+def fix_model_config(model_path):
+    """Fix the model config file with proper model_type."""
+    config_file = os.path.join(model_path, "config.json")
+    
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            
+            st.info(f"🔧 Current config keys: {list(config.keys())}")
+            
+            # Add missing required fields
+            if "model_type" not in config:
+                # Try to detect model type from other fields
+                if "vocab_size" in config:
+                    if config.get("vocab_size", 0) == 30522:
+                        config["model_type"] = "bert"
+                    elif config.get("vocab_size", 0) == 50265:
+                        config["model_type"] = "roberta"
+                    else:
+                        config["model_type"] = "bert"  # Default to bert
+                else:
+                    config["model_type"] = "bert"
+                
+                st.info(f"🔧 Set model_type to: {config['model_type']}")
+            
+            if "architectures" not in config:
+                if config["model_type"] == "bert":
+                    config["architectures"] = ["BertModel"]
+                elif config["model_type"] == "roberta":
+                    config["architectures"] = ["RobertaModel"]
+                else:
+                    config["architectures"] = ["BertModel"]
+                
+                st.info(f"🔧 Set architectures to: {config['architectures']}")
+            
+            # Add other common required fields
+            if "hidden_size" not in config:
+                config["hidden_size"] = 768  # Common default
+            
+            if "num_attention_heads" not in config:
+                config["num_attention_heads"] = 12  # Common default
+            
+            if "num_hidden_layers" not in config:
+                config["num_hidden_layers"] = 12  # Common default
+            
+            # Save fixed config
+            with open(config_file, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=2)
+                
+            st.success("✅ Fixed model configuration!")
+            
+        except Exception as e:
+            st.error(f"❌ Could not fix config: {e}")
 
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
