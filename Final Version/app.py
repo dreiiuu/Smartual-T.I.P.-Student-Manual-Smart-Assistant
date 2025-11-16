@@ -887,7 +887,7 @@ def render_results_page():
     
     # Feedback Section
     st.markdown("---")
-    st.markdown("### 📣 Is this helpful")
+    st.markdown("### 📣 Is this helpful?")
     
     feedback_col1, feedback_col2 = st.columns(2)
     
