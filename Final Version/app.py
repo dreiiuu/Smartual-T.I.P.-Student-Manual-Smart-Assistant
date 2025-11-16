@@ -39,48 +39,6 @@ def load_model():
     # Check if model already exists
     if os.path.exists(model_path) and os.path.exists(os.path.join(model_path, "config.json")):
         try:
-            return SentenceTransformer(model_path)
-        except Exception as e:
-            st.error(f"❌ Model exists but failed to load: {e}")
-            st.stop()
-    
-    # Download from Google Drive
-    try:
-        st.info("📥 Downloading our custom trained model...")
-        
-        # Download ZIP
-        zip_path = "smartual_model.zip"
-        gdown.download(MODEL_ZIP_URL, zip_path, quiet=False)
-        
-        if not os.path.exists(zip_path):
-            st.error("❌ Download failed! Check your Google Drive link.")
-            st.stop()
-        
-        # Extract
-        st.info("📦 Extracting model files...")
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(model_path)
-        
-        # Clean up
-        if os.path.exists(zip_path):
-            os.remove(zip_path)
-        
-        # Load our custom model
-        return SentenceTransformer(model_path)
-        
-    except Exception as e:
-        st.error(f"❌ Failed to load our custom model: {e}")
-        st.stop()
-        return None
-
-@st.cache_resource
-def load_model():
-    """Load ONLY our custom trained model from Google Drive."""
-    model_path = "smartual_model"
-    
-    # Check if model already exists
-    if os.path.exists(model_path) and os.path.exists(os.path.join(model_path, "config.json")):
-        try:
             # Fix the config file if needed
             fix_model_config(model_path)
             return SentenceTransformer(model_path)
