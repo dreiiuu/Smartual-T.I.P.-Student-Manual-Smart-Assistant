@@ -40,8 +40,8 @@ def ensure_model_extracted():
 # CONFIGURATION & COLOR PALETTE
 # ============================================================================
 
-MANUAL_DATA_FILE = "manual_data.json"
-SECTION_EXAMPLES_FILE = "section_examples.json"
+MANUAL_DATA_FILE = "Final Version/manual_data.json"
+SECTION_EXAMPLES_FILE = "Final Version/section_examples.json"
 FEEDBACK_PATH = "feedback_log.csv"
 SCHOOL_LOGO = "TIP_LOGO.jpg"
 CHUNK_SIZE = 300
