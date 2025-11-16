@@ -149,10 +149,6 @@ def load_section_examples():
         examples = json.load(f)
     return examples
 
-@st.cache_resource
-def load_model():
-    """Load the sentence transformer model."""
-    return SentenceTransformer(MODEL_PATH)
 
 @st.cache_resource
 def build_index(_chunks, _model):
