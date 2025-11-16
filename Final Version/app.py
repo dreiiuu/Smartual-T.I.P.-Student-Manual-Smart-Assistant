@@ -34,13 +34,13 @@ MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2m
 
 @st.cache_resource
 def load_model():
-    """Simple loader that creates proper Sentence Transformers structure."""
+    """Load Sentence Transformers model properly."""
     model_path = "smartual_model"
     
-    # Download from Google Drive if needed
+    # Download if needed
     if not os.path.exists(model_path):
         try:
-            st.info("📥 Downloading our custom trained model...")
+            st.info("📥 Downloading model...")
             zip_path = "smartual_model.zip"
             gdown.download(MODEL_ZIP_URL, zip_path, quiet=False)
             
@@ -52,37 +52,30 @@ def load_model():
             st.error(f"❌ Download failed: {e}")
             st.stop()
     
-    # Create modules.json to tell SentenceTransformers how to load the components
-    modules_json = [
-        {
-            "idx": 0,
-            "name": "0",
-            "path": "",  # Main folder contains the transformer
-            "type": "sentence_transformers.models.Transformer"
-        },
-        {
-            "idx": 1,
-            "name": "1",
-            "path": "1_Pooling",  # Pooling layer in subfolder
-            "type": "sentence_transformers.models.Pooling"
-        }
-    ]
-    
-    # Save modules.json
-    modules_json_path = os.path.join(model_path, "modules.json")
-    with open(modules_json_path, 'w', encoding='utf-8') as f:
-        json.dump(modules_json, f, indent=2)
-    
-    st.success("✅ Created Sentence Transformers configuration")
-    
+    # MANUALLY CREATE THE MODEL
     try:
-        # Now load as Sentence Transformers model
-        model = SentenceTransformer(model_path)
-        st.success("✅ Custom Sentence Transformers model loaded successfully!")
+        from sentence_transformers import models
+        
+        # 1. Load transformer
+        word_embedding_model = models.Transformer(model_path)
+        
+        # 2. Load pooling from config
+        pooling_config_path = os.path.join(model_path, "1_Pooling", "config.json")
+        with open(pooling_config_path, 'r') as f:
+            pooling_config = json.load(f)
+        
+        pooling_model = models.Pooling(
+            word_embedding_model.get_word_embedding_dimension(),
+            pooling_mode_mean_tokens=True  # Force mean pooling
+        )
+        
+        # 3. Create model
+        model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
+        st.success("✅ Model loaded!")
         return model
         
     except Exception as e:
-        st.error(f"❌ Failed to load Sentence Transformers model: {e}")
+        st.error(f"❌ Load failed: {e}")
         st.stop()
 
 # COLOR PALETTE - Balanced Yellow
