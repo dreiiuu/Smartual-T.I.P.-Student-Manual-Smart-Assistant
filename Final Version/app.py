@@ -31,10 +31,9 @@ CHUNK_SIZE = 300
 # REPLACE THIS WITH YOUR ACTUAL GOOGLE DRIVE FILE ID
 MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2mG"
 
-
 @st.cache_resource
 def load_model():
-    """Load Sentence Transformers model properly."""
+    """Load Sentence Transformers model with config fix."""
     model_path = "smartual_model"
     
     # Download if needed
@@ -52,6 +51,19 @@ def load_model():
             st.error(f"❌ Download failed: {e}")
             st.stop()
     
+    # FIX THE CONFIG FILE FIRST
+    config_path = os.path.join(model_path, "config.json")
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+        
+        # Add missing model_type
+        if "model_type" not in config:
+            config["model_type"] = "bert"  # Your model is BERT-based
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            st.info("✅ Fixed config.json")
+    
     # MANUALLY CREATE THE MODEL
     try:
         from sentence_transformers import models
@@ -59,19 +71,15 @@ def load_model():
         # 1. Load transformer
         word_embedding_model = models.Transformer(model_path)
         
-        # 2. Load pooling from config
-        pooling_config_path = os.path.join(model_path, "1_Pooling", "config.json")
-        with open(pooling_config_path, 'r') as f:
-            pooling_config = json.load(f)
-        
+        # 2. Create pooling
         pooling_model = models.Pooling(
             word_embedding_model.get_word_embedding_dimension(),
-            pooling_mode_mean_tokens=True  # Force mean pooling
+            pooling_mode_mean_tokens=True
         )
         
         # 3. Create model
         model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
-        st.success("✅ Model loaded!")
+        st.success("✅ Model loaded successfully!")
         return model
         
     except Exception as e:
