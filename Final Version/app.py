@@ -229,21 +229,22 @@ for filename, file_id in model_files.items():
     except Exception as e:
         print(f"❌ Failed to download {filename}: {e}")
 
-# Download pooling folder files
+# Download pooling folder files - FIX THE PATH
 print("📥 Downloading pooling files...")
 for filename, file_id in pooling_files.items():
     try:
         url = f"https://drive.google.com/uc?id={file_id}"
-        output_path = f"smartual_model/pooling/{filename}"
+        # FIXED: Changed from "pooling" to "1_Pooling"
+        output_path = f"smartual_model/1_Pooling/{filename}"
         
         if not os.path.exists(output_path):
             gdown.download(url, output_path, quiet=False)
-            print(f"✅ Downloaded: pooling/{filename}")
+            print(f"✅ Downloaded: 1_Pooling/{filename}")
         else:
-            print(f"✅ Already exists: pooling/{filename}")
-        downloaded_files.append(f"pooling/{filename}")
+            print(f"✅ Already exists: 1_Pooling/{filename}")
+        downloaded_files.append(f"1_Pooling/{filename}")
     except Exception as e:
-        print(f"❌ Failed to download pooling/{filename}: {e}")
+        print(f"❌ Failed to download 1_Pooling/{filename}: {e}")
 
 # Check if essential files were downloaded
 essential_files = ["config.json", "vocab.txt"]
@@ -330,21 +331,30 @@ def load_section_examples():
 
 @st.cache_resource
 def load_model():
-    """Load the sentence transformer model from Hugging Face."""
+    """Load the sentence transformer model - FIXED VERSION"""
     try:
-        # Try to load a small, efficient model from Hugging Face
-        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-        print("✅ Loaded model: all-MiniLM-L6-v2")
+        # FIRST try to load your custom model
+        print(f"🔄 Attempting to load custom model from: {MODEL_PATH}")
+        model = SentenceTransformer(MODEL_PATH)
+        print("✅ Loaded custom model successfully!")
+        
+        # Test the model to ensure it works
+        test_embedding = model.encode(["test sentence"], show_progress_bar=False)
+        print(f"✅ Model test passed. Embedding dimension: {test_embedding.shape[1]}")
+        
         return model
+        
     except Exception as e:
-        st.error(f"❌ Failed to load model: {e}")
-        # Fallback: try to use the local model with error handling
+        print(f"❌ Failed to load custom model: {e}")
+        st.warning("⚠️ Using fallback model instead of custom model")
+        
+        # Fallback: try to use the Hugging Face model
         try:
-            model = SentenceTransformer(MODEL_PATH)
-            print("✅ Loaded local model")
+            model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+            print("✅ Loaded fallback model: all-MiniLM-L6-v2")
             return model
         except Exception as e2:
-            st.error(f"❌ Failed to load local model: {e2}")
+            st.error(f"❌ Failed to load fallback model: {e2}")
             st.stop()
             
 @st.cache_resource
@@ -635,12 +645,21 @@ def main():
     setup_css()
     
     # ========================================================================
-    # LOAD RESOURCES
+    # LOAD RESOURCES - WITH VALIDATION
     # ========================================================================
     
-    model = load_model()
-    chunks, all_sections = load_manual_from_json()
-    section_examples = load_section_examples()
+    # Show loading message
+    with st.spinner("🔄 Loading AI model and resources..."):
+        model = load_model()
+        chunks, all_sections = load_manual_from_json()
+        section_examples = load_section_examples()
+    
+    # Display which model is being used
+    st.sidebar.markdown("---")
+    if "custom" in MODEL_PATH.lower():
+        st.sidebar.success("✅ Using Custom Model")
+    else:
+        st.sidebar.warning("⚠️ Using Fallback Model")
     
     if not chunks:
         st.error("⚠️ Failed to load manual data. Please ensure 'manual_data.json' exists.")
