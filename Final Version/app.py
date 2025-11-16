@@ -24,20 +24,59 @@ SECTION_EXAMPLES_FILE = "section_examples.json"
 FEEDBACK_PATH = "feedback_log.csv"
 SCHOOL_LOGO = "TIP_LOGO.jpg"
 CHUNK_SIZE = 300
-MODEL_PATH = "dreiiuu/smartual_model"
 
+# REPLACE THIS WITH YOUR ACTUAL GOOGLE DRIVE FILE ID
+MODEL_ZIP_URL = "https://drive.google.com/uc?id=YOUR_ACTUAL_FILE_ID_HERE"
 
 @st.cache_resource
 def load_model():
-    """Load the sentence transformer model from Hugging Face Hub."""
+    """Load the sentence transformer model from Google Drive."""
+    model_path = "smartual_model"
+    
+    # Check if model already exists and works
+    if os.path.exists(model_path) and os.path.exists(os.path.join(model_path, "config.json")):
+        try:
+            model = SentenceTransformer(model_path)
+            st.success("✅ Custom trained model loaded successfully!")
+            return model
+        except Exception as e:
+            st.warning(f"Model exists but failed to load: {e}")
+    
+    # Download and extract model from Google Drive
     try:
-        # This will automatically download from HF Hub
-        return SentenceTransformer(MODEL_PATH)
+        st.info("📥 Downloading your high-accuracy custom model from Google Drive... This may take a few minutes.")
+        
+        # Download the ZIP file
+        zip_path = "smartual_model.zip"
+        gdown.download(MODEL_ZIP_URL, zip_path, quiet=False)
+        
+        if not os.path.exists(zip_path):
+            st.error("❌ Download failed! File not found.")
+            raise Exception("Download failed")
+        
+        # Extract the ZIP file
+        st.info("📦 Extracting model files...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(model_path)
+        
+        # Verify extraction
+        if not os.path.exists(os.path.join(model_path, "config.json")):
+            st.error("❌ Model extraction failed! Config file missing.")
+            raise Exception("Extraction failed")
+        
+        # Clean up ZIP file
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
+        
+        # Load the model
+        model = SentenceTransformer(model_path)
+        st.success("✅ Custom trained model downloaded and loaded successfully!")
+        return model
+        
     except Exception as e:
-        st.error(f"❌ Failed to load custom model: {e}")
+        st.error(f"❌ Failed to download/load custom model: {e}")
         st.info("🔄 Falling back to default model...")
         return SentenceTransformer("all-MiniLM-L6-v2")
-        
 
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
