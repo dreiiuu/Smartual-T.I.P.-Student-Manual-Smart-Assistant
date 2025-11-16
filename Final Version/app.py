@@ -659,7 +659,7 @@ def main():
     if "custom" in MODEL_PATH.lower():
         st.sidebar.success("✅ Using Custom Model")
     else:
-        break
+        st.sidebar.success("✅ Using Fallback Model")
     
     if not chunks:
         st.error("⚠️ Failed to load manual data. Please ensure 'manual_data.json' exists.")
