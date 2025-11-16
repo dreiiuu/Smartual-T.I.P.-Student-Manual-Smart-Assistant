@@ -4,6 +4,8 @@
 # Author: AI Assistant | Date: November 2025
 # ============================================================================
 
+import zipfile
+import gdown
 import os
 import json
 import streamlit as st
@@ -14,6 +16,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import time
 from datetime import datetime
+
 
 # ============================================================================
 # CONFIGURATION & COLOR PALETTE
@@ -26,8 +29,8 @@ SCHOOL_LOGO = "TIP_LOGO.jpg"
 CHUNK_SIZE = 300
 
 # REPLACE THIS WITH YOUR ACTUAL GOOGLE DRIVE FILE ID
-MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2mG"
-
+MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2mG
+"
 
 @st.cache_resource
 def load_model():
@@ -78,7 +81,6 @@ def load_model():
         st.error(f"❌ Failed to download/load custom model: {e}")
         st.info("🔄 Falling back to default model...")
         return SentenceTransformer("all-MiniLM-L6-v2")
-
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
 SECONDARY = "#5D4037"    # Rich Brown
