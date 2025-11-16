@@ -16,20 +16,39 @@ from sklearn.metrics.pairwise import cosine_similarity
 import time
 from datetime import datetime
 
+# -----------------------------------------------------------------------------
+# MODEL EXTRACTION FUNCTION
+# -----------------------------------------------------------------------------
+def ensure_model_extracted():
+zip_path = "smartual_model.zip"
+extract_path = "smartual_model"
+
+
+if os.path.exists(extract_path):
+return extract_path
+
+
+if not os.path.exists(zip_path):
+st.error("Model zip file not found! Please upload smartual_model.zip")
+return None
+
+
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+zip_ref.extractall(extract_path)
+
+
+return extract_path
+
 # ============================================================================
 # CONFIGURATION & COLOR PALETTE
 # ============================================================================
-
-base_path = os.path.dirname(__file__)
-zip_path = os.path.join(base_path, "smartual_model.zip")
-smartual_model = os.path.join(base_path, "smartual_model")
 
 MANUAL_DATA_FILE = "manual_data.json"
 SECTION_EXAMPLES_FILE = "section_examples.json"
 FEEDBACK_PATH = "feedback_log.csv"
 SCHOOL_LOGO = "TIP_LOGO.jpg"
 CHUNK_SIZE = 300
-MODEL_PATH = "smartual_model"
+MODEL_PATH = ensure_model_extracted()
 
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
