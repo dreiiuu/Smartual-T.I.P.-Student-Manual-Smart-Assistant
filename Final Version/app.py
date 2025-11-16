@@ -346,7 +346,6 @@ def load_model():
         
     except Exception as e:
         print(f"❌ Failed to load custom model: {e}")
-        st.warning("⚠️ Using fallback model instead of custom model")
         
         # Fallback: try to use the Hugging Face model
         try:
