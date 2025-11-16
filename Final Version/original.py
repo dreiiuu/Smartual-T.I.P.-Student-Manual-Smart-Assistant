@@ -22,9 +22,9 @@ from datetime import datetime
 MANUAL_DATA_FILE = "manual_data.json"
 SECTION_EXAMPLES_FILE = "section_examples.json"
 FEEDBACK_PATH = "feedback_log.csv"
-SCHOOL_LOGO = "tip_logo.png"
+SCHOOL_LOGO = "TIP_LOGO.jpg"
 CHUNK_SIZE = 300
-MODEL_PATH = "D:\smartual_model"
+MODEL_PATH = "smartual_model"
 
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
