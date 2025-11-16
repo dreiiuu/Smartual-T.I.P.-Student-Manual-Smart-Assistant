@@ -654,18 +654,18 @@ def main():
         chunks, all_sections = load_manual_from_json()
         section_examples = load_section_examples()
 
-    """
-    # Display which model is being used
-    st.sidebar.markdown("---")
-    if "custom" in MODEL_PATH.lower():
-        st.sidebar.success("✅ Using Custom Model")
-    else:
-        st.sidebar.success("⚠️ Using Fallback Model")
     
-    if not chunks:
-        st.error("⚠️ Failed to load manual data. Please ensure 'manual_data.json' exists.")
-        return
-    """
+    # Display which model is being used
+    #st.sidebar.markdown("---")
+    #if "custom" in MODEL_PATH.lower():
+     #   st.sidebar.success("✅ Using Custom Model")
+    #else:
+     #   st.sidebar.success("⚠️ Using Fallback Model")
+    
+    #if not chunks:
+     #   st.error("⚠️ Failed to load manual data. Please ensure 'manual_data.json' exists.")
+      #  return
+    
     
     index, chunk_embeds = build_index(chunks, model)
     
