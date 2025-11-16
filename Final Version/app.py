@@ -24,7 +24,9 @@ SECTION_EXAMPLES_FILE = "section_examples.json"
 FEEDBACK_PATH = "feedback_log.csv"
 SCHOOL_LOGO = "TIP_LOGO.jpg"
 CHUNK_SIZE = 300
-MODEL_PATH = "dreiiuu/smartual-model"
+MODEL_PATH = "dreiiuu/smartual_model"
+
+
 @st.cache_resource
 def load_model():
     """Load the sentence transformer model from Hugging Face Hub."""
