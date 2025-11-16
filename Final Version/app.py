@@ -24,7 +24,18 @@ SECTION_EXAMPLES_FILE = "section_examples.json"
 FEEDBACK_PATH = "feedback_log.csv"
 SCHOOL_LOGO = "TIP_LOGO.jpg"
 CHUNK_SIZE = 300
-MODEL_PATH = "smartual_model"
+MODEL_PATH = "dreiiuu/smartual-model"
+@st.cache_resource
+def load_model():
+    """Load the sentence transformer model from Hugging Face Hub."""
+    try:
+        # This will automatically download from HF Hub
+        return SentenceTransformer(MODEL_PATH)
+    except Exception as e:
+        st.error(f"❌ Failed to load custom model: {e}")
+        st.info("🔄 Falling back to default model...")
+        return SentenceTransformer("all-MiniLM-L6-v2")
+        
 
 # COLOR PALETTE - Balanced Yellow
 PRIMARY = "#FFA000"      # Perfect Amber Balance
