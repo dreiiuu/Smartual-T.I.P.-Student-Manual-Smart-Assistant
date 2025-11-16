@@ -26,7 +26,8 @@ SCHOOL_LOGO = "TIP_LOGO.jpg"
 CHUNK_SIZE = 300
 
 # REPLACE THIS WITH YOUR ACTUAL GOOGLE DRIVE FILE ID
-MODEL_ZIP_URL = "https://drive.google.com/uc?id=YOUR_ACTUAL_FILE_ID_HERE"
+MODEL_ZIP_URL = "https://drive.google.com/uc?id=1O-PyfdTRhUfvBqynBNgy2R8nzkKwX2mG"
+
 
 @st.cache_resource
 def load_model():
