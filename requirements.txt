@@ -7,5 +7,4 @@ python-docx
 PyPDF2
 pandas
 numpy
-huggingface-hub
 gdown
