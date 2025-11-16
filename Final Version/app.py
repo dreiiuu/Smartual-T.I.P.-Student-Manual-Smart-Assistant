@@ -693,7 +693,6 @@ def main():
         1. Type your question
         2. Click **Ask** or use sample questions
         3. Get instant answers from the T.I.P. Manual
-        4. Rate the answer quality
         
         **Available Sections:**
         """)
@@ -888,7 +887,7 @@ def render_results_page():
     
     # Feedback Section
     st.markdown("---")
-    st.markdown("### 📣 Rate This Answer")
+    st.markdown("### 📣 Is this helpful")
     
     feedback_col1, feedback_col2 = st.columns(2)
     
