@@ -772,14 +772,7 @@ def render_home_page(model, chunks, index, chunk_embeds, section_examples, all_s
         <h3 style='color: {TEXT}; margin-bottom: 1.5rem;'>💬 Ask Your Question</h3>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Search Section
-    st.markdown(f"""
-    <div class="search-section">
-        <h3 style='color: {TEXT}; margin-bottom: 1.5rem;'>💬 Ask Your Question</h3>
-    </div>
-    """, unsafe_allow_html=True)
-    
+        
     # Input Area
     col1, col2 = st.columns([3, 1])
     
